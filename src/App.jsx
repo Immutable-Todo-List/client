@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added missing useEffect import
 import { ethers } from 'ethers';
 import './App.css';
 
@@ -8,12 +8,6 @@ import contractAddress from './contracts/contract-address.json';
 import ConnectWalletButton from './components/ConnectWalletButton';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
-
-// const mockTasks = [
-//   { id: 0, content: "Learn about smart contract testing", completed: true },
-//   { id: 1, content: "Assemble React components in App.js", completed: false },
-//   { id: 2, content: "Style the dApp with CSS", completed: false },
-// ];
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
@@ -47,9 +41,9 @@ function App() {
       await tx.wait();
       console.log("Transaction mined! The 'TaskCompletedToggled' event listener will now update the UI.");
 
-    } catch (error) {
+    } catch (error) { // Fixed: changed 'err' to 'error' to match the caught variable
       console.error("Error toggling task status:", error);
-      if (err.code === 'ACTION_REJECTED') {
+      if (error.code === 'ACTION_REJECTED') { // Fixed: changed 'err' to 'error'
         setError("Transaction rejected by user.");
       } else {
         setError("An error occurred while toggling the task.");
@@ -58,7 +52,6 @@ function App() {
       setIsLoading(false);
     }
   };
-
 
   const fetchMyTasks = async () => {
     try {
@@ -84,7 +77,7 @@ function App() {
         }));
 
         console.log("Tasks formatted!", formattedTasks);
-        setTasks(fetchedTasks);
+        setTasks(formattedTasks); // Fixed: changed 'fetchedTasks' to 'formattedTasks'
 
       } else {
         console.log("Ethereum object doesn't exist!");
@@ -119,11 +112,11 @@ function App() {
       const tx = await contract.createTask(content);
 
       await tx.wait();
-      onsole.log("Transaction mined! The 'TaskCreated' event listener will now update the UI.");
+      console.log("Transaction mined! The 'TaskCreated' event listener will now update the UI."); // Fixed: added missing 'c' in 'console'
 
-    } catch (error) {
+    } catch (error) { // Fixed: changed 'err' to 'error' to match the caught variable
       console.error("Error creating task:", error);
-      if (err.code === 'ACTION_REJECTED') {
+      if (error.code === 'ACTION_REJECTED') { // Fixed: changed 'err' to 'error'
         setError("Transaction rejected by user.");
       } else {
         setError("An error occurred while creating the task.");
@@ -184,6 +177,9 @@ function App() {
       console.log("Setting up event listeners...");
       contract.on("TaskCreated", onTaskCreated);
       contract.on("TaskCompletedToggled", onTaskCompletedToggled);
+
+      // Fetch existing tasks when account is connected
+      fetchMyTasks();
     }
     
     return () => {
@@ -199,7 +195,6 @@ function App() {
     const { ethereum } = window;
 
     if (ethereum) {
-
       const handleAccountsChanged = (accounts) => {
         console.log("Account changed:", accounts);
 
@@ -207,6 +202,7 @@ function App() {
           setCurrentAccount(accounts[0]);
         } else {
           setCurrentAccount(null);
+          setTasks([]); // Clear tasks when disconnected
         }
       };
 
@@ -251,7 +247,6 @@ function App() {
     }
   };
 
-
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
@@ -271,7 +266,6 @@ function App() {
         console.log("No accounts found.");
       }
 
-
     } catch (error) {
       console.error("Error connecting wallet:", error);
     }
@@ -289,7 +283,7 @@ function App() {
         <div className="error-popup">
           <p>{error}</p>
           <button onClick={() => setError(null)}>Dismiss</button>
-          </div>
+        </div>
       )}
 
       <header className="app-header">
