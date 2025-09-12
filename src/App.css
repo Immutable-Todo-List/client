@@ -1,0 +1,261 @@
+/* src/App.css */
+
+/* 1. Root and Global Styles */
+/* :root allows us to define CSS variables for consistent theming. */
+:root {
+  --background-color: #1a1a2e;
+  --primary-color: #16213e;
+  --secondary-color: #0f3460;
+  --accent-color: #e94560;
+  --text-color: #dcdcdc;
+  --subtle-text-color: #a9a9a9;
+  --completed-color: #5cb85c;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* A simple reset to make styling more predictable across browsers. */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+}
+
+/* 2. Main App Layout */
+.app-container {
+  width: 100%;
+  max-width: 600px;
+  min-height: 500px;
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--secondary-color);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  color: var(--accent-color);
+}
+
+/* 3. Button and Form Styles */
+.connect-wallet-button, .task-button {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+.connect-wallet-button:hover, .task-button:hover {
+  background-color: #ff5777;
+}
+
+.connect-wallet-button:active, .task-button:active {
+  transform: scale(0.98);
+}
+
+.task-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.task-input {
+  flex-grow: 1; /* Allows the input to take up the remaining space */
+  padding: 10px;
+  font-size: 1rem;
+  border: 2px solid var(--secondary-color);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: border-color 0.2s ease;
+}
+
+.task-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+/* 4. Task List and Item Styles */
+.task-list {
+  list-style-type: none; /* Removes the default list bullets */
+  flex-grow: 1; /* Allows the list to take up remaining vertical space */
+  overflow-y: auto; /* Adds a scrollbar if tasks overflow */
+}
+
+.task-list-empty {
+  text-align: center;
+  color: var(--subtle-text-color);
+  margin-top: 40px;
+  font-style: italic;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  background-color: var(--secondary-color);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin-bottom: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.task-content {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+/* The checkbox itself */
+.task-content input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.task-text {
+  font-size: 1.1rem;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+/* 5. The Magic: Styling Completed Tasks */
+/* This is a powerful CSS selector. It targets a .task-text element
+   that is a descendant of a .task-item element which ALSO has the .completed class. */
+.task-item.completed {
+  background-color: #1f3a61; /* A slightly different background for completed tasks */
+}
+   
+.task-item.completed .task-text {
+  color: var(--subtle-text-color);
+  text-decoration: line-through; /* The strikethrough effect */
+}
+
+
+/* 6. Wallet Address Display Style */
+.wallet-address {
+  background-color: var(--secondary-color);
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  font-family: 'Courier New', Courier, monospace; /* Monospaced font for address */
+  font-size: 0.9rem;
+  border: 1px solid var(--background-color);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+
+/* This is the full-screen overlay that will dim the background. */
+.loading-overlay {
+  /* position: fixed ensures it covers the entire viewport, regardless of scrolling. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  /* A semi-transparent black background. */
+  background-color: rgba(0, 0, 0, 0.6);
+
+  /* Flexbox is used to center the spinner perfectly in the middle of the screen. */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* A high z-index ensures it appears on top of all other content. */
+  z-index: 1000;
+}
+
+/* This is the spinner itself. */
+.loading-spinner {
+  /* We create a circle using border-radius. */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  
+  /* The border is what creates the visible ring. The 'transparent' part
+     makes most of the border invisible, and the colored part is what you see. */
+  border: 6px solid transparent;
+  border-top-color: #61dafb; /* A nice React-blue color */
+
+  /* The 'animation' property applies our rotation keyframes. */
+  /* 'spin 1s linear infinite' means:
+     - Use the 'spin' animation.
+     - Take 1 second to complete one cycle.
+     - Move at a constant 'linear' speed.
+     - Repeat 'infinite' times.
+  */
+  animation: spin 1s linear infinite;
+}
+
+/* This is the keyframe animation for the rotation. */
+/* It defines that the animation starts at 0 degrees rotation and ends at 360 degrees. */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-popup {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff4d4d; /* A distinct error color */
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 1001; /* Ensure it's above the loading overlay if needed */
+  max-width: 90%;
+}
+
+.error-popup p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.error-popup button {
+  background: none;
+  border: 2px solid white;
+  color: white;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.error-popup button:hover {
+  background-color: white;
+  color: #ff4d4d;
+}
