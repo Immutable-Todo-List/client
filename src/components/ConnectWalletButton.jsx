@@ -1,11 +1,8 @@
 import React from 'react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-const ConnectWalletButton = ({ onConnect }) => {
-    return (
-        <button className="connect-wallet-button" onClick={onConnect}>
-            Connect Wallet
-        </button>
-    );
+const ConnectWalletButton = () => {
+    return <ConnectButton />;
 };
 
 export default ConnectWalletButton;
