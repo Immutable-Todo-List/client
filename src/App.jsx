@@ -18,7 +18,7 @@ function App() {
   
   // Read tasks from contract
   const { data: rawTasks, refetch: refetchTasks } = useReadContract({
-    address: contractAddress.address,
+    address: contractAddress.TodoList,
     abi: todoListAbi.abi,
     functionName: 'getMyTasks',
     account: address,
@@ -35,7 +35,7 @@ function App() {
 
       console.log("Submitting transaction to toggle task...");
       writeContract({
-        address: contractAddress.address,
+        address: contractAddress.TodoList,
         abi: todoListAbi.abi,
         functionName: 'toggleCompleted',
         args: [taskId],
@@ -73,7 +73,7 @@ function App() {
 
       console.log("Submitting transaction to create task...");
       writeContract({
-        address: contractAddress.address,
+        address: contractAddress.TodoList,
         abi: todoListAbi.abi,
         functionName: 'createTask',
         args: [content],
@@ -87,7 +87,7 @@ function App() {
 
   // Watch for TaskCreated events
   useWatchContractEvent({
-    address: contractAddress.address,
+    address: contractAddress.TodoList,
     abi: todoListAbi.abi,
     eventName: 'TaskCreated',
     onLogs(logs) {
@@ -105,7 +105,7 @@ function App() {
   
   // Watch for TaskCompletedToggled events
   useWatchContractEvent({
-    address: contractAddress.address,
+    address: contractAddress.TodoList,
     abi: todoListAbi.abi,
     eventName: 'TaskCompletedToggled',
     onLogs(logs) {
