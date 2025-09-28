@@ -1,125 +1,123 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWatchContractEvent } from 'wagmi';
 import './App.css';
 
 import todoListAbi from './contracts/TodoList.json';
 import contractAddress from './contracts/contract-address.json';
+import { reown } from './reown.js';
 
 import ConnectWalletButton from './components/ConnectWalletButton';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 
 function App() {
-  const { address, isConnected } = useAccount();
+  const [address, setAddress] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState(null);
-  
-  const { writeContract, isPending: isWritePending } = useWriteContract();
-  
-  // Read tasks from contract
-  const { data: rawTasks, refetch: refetchTasks } = useReadContract({
-    address: contractAddress.TodoList,
-    abi: todoListAbi.abi,
-    functionName: 'getMyTasks',
-    account: address,
-  });
+  const [isWritePending, setIsWritePending] = useState(false);
+
+  // Listen for wallet connection changes
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        if (reown && reown.getAccount) {
+          const account = reown.getAccount();
+          if (account && account.address) {
+            setAddress(account.address);
+            setIsConnected(true);
+            await fetchTasks(account.address);
+          } else {
+            setAddress(null);
+            setIsConnected(false);
+            setTasks([]);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking wallet connection:', error);
+        setAddress(null);
+        setIsConnected(false);
+        setTasks([]);
+      }
+    };
+
+    checkConnection();
+    
+    // Set up event listeners for wallet state changes
+    if (reown && reown.subscribeAccount) {
+      const unsubscribe = reown.subscribeAccount((account) => {
+        if (account && account.address) {
+          setAddress(account.address);
+          setIsConnected(true);
+          fetchTasks(account.address);
+        } else {
+          setAddress(null);
+          setIsConnected(false);
+          setTasks([]);
+        }
+      });
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }
+  }, []);
+
+  // Fetch tasks from contract
+  const fetchTasks = async (userAddress) => {
+    try {
+      // This would need to be implemented with a proper Web3 provider
+      // For now, we'll use a placeholder
+      console.log('Fetching tasks for address:', userAddress);
+      // TODO: Implement contract reading with ethers or web3.js
+      setTasks([]);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setTasks([]);
+    }
+  };
 
   const handleToggleCompleted = async (taskId) => {
     try {
       setError(null);
+      setIsWritePending(true);
       
-      if (!isConnected) {
-        setError("Please connect your wallet first.");
-        return;
-      }
-
-      console.log("Submitting transaction to toggle task...");
-      writeContract({
-        address: contractAddress.TodoList,
-        abi: todoListAbi.abi,
-        functionName: 'toggleCompleted',
-        args: [taskId],
-      });
-
+      // TODO: Implement contract writing with ethers or web3.js
+      console.log('Toggling task completion for task ID:', taskId);
+      
+      // Placeholder - would need proper Web3 provider integration
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIsWritePending(false);
     } catch (error) {
-      console.error("Error toggling task status:", error);
-      setError("An error occurred while toggling the task.");
+      console.error('Error toggling task:', error);
+      setError('Failed to toggle task completion. Please try again.');
+      setIsWritePending(false);
     }
   };
-
-  // Format tasks when rawTasks changes
-  useEffect(() => {
-    if (rawTasks) {
-      const formattedTasks = rawTasks.map(task => ({
-        id: Number(task.id),
-        content: task.content,
-        completed: task.completed,
-      }));
-      console.log("Tasks formatted!", formattedTasks);
-      setTasks(formattedTasks);
-    } else {
-      setTasks([]);
-    }
-  }, [rawTasks]);
 
   const handleAddTask = async (content) => {
     try {
       setError(null);
+      setIsWritePending(true);
       
-      if (!isConnected) {
-        setError("Please connect your wallet first.");
-        return;
-      }
-
-      console.log("Submitting transaction to create task...");
-      writeContract({
-        address: contractAddress.TodoList,
-        abi: todoListAbi.abi,
-        functionName: 'createTask',
-        args: [content],
-      });
-
+      // TODO: Implement contract writing with ethers or web3.js
+      console.log('Creating new task with content:', content);
+      
+      // Placeholder - would need proper Web3 provider integration
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIsWritePending(false);
     } catch (error) {
-      console.error("Error creating task:", error);
-      setError("An error occurred while creating the task.");
+      console.error('Error creating task:', error);
+      setError('Failed to create task. Please try again.');
+      setIsWritePending(false);
     }
   };
 
-  // Watch for TaskCreated events
-  useWatchContractEvent({
-    address: contractAddress.TodoList,
-    abi: todoListAbi.abi,
-    eventName: 'TaskCreated',
-    onLogs(logs) {
-      logs.forEach((log) => {
-        const { creator, taskId, content } = log.args;
-        console.log(`EVENT: TaskCreated received from ${creator}.`);
-        
-        if (creator.toLowerCase() === address?.toLowerCase()) {
-          console.log("Task is for the current user. Refetching tasks.");
-          refetchTasks();
-        }
-      });
-    },
-  });
-  
-  // Watch for TaskCompletedToggled events
-  useWatchContractEvent({
-    address: contractAddress.TodoList,
-    abi: todoListAbi.abi,
-    eventName: 'TaskCompletedToggled',
-    onLogs(logs) {
-      logs.forEach((log) => {
-        const { user, taskId, newStatus } = log.args;
-        console.log(`EVENT: TaskCompletedToggled received for user ${user}.`);
-        
-        if (user.toLowerCase() === address?.toLowerCase()) {
-          console.log("Toggle event is for the current user. Refetching tasks.");
-          refetchTasks();
-        }
-      });
-    },
-  });
+  // TODO: Implement contract event listening with ethers or web3.js
+  // This would replace the useWatchContractEvent hooks from Wagmi
 
 
 
@@ -129,30 +127,51 @@ function App() {
 
   return (
     <div className="app-container">
+      <header className="app-header">
+        <h1>Immutable Todo List</h1>
+        <ConnectWalletButton />
+        {isConnected && address && (
+          <div className="wallet-info">
+            <p>Connected on Base Mainnet</p>
+            <p className="wallet-address">Address: {address}</p>
+          </div>
+        )}
+      </header>
+
+      <main className="main-content">
+        {isConnected ? (
+          <>
+            <TaskForm onAddTask={handleAddTask} isLoading={isWritePending} />
+            <TaskList 
+              tasks={tasks} 
+              onToggleCompleted={handleToggleCompleted}
+            />
+          </>
+        ) : (
+          <div className="connect-prompt">
+            <p>Please connect your wallet to view and manage your tasks.</p>
+          </div>
+        )}
+      </main>
+
+      {/* Loading overlay */}
       {isWritePending && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="error-popup">
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>Dismiss</button>
+          <p>Processing transaction...</p>
         </div>
       )}
 
-      <header className="app-header">
-        <h1>Immutable To-Do List</h1>
-        <ConnectWalletButton />
-      </header>
-      <main>
-        <TaskForm onAddTask={handleAddTask} isLoading={isWritePending} />
-        <TaskList 
-          tasks={tasks} 
-          onToggleCompleted={handleToggleCompleted}
-        />
-      </main>
+      {/* Error popup */}
+      {error && (
+        <div className="error-popup">
+          <div className="error-content">
+            <h3>Error</h3>
+            <p>{error}</p>
+            <button onClick={() => setError(null)}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

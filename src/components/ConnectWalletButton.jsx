@@ -1,8 +1,18 @@
+'use client'
+
 import React from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { reown } from '../reown.js';
 
 const ConnectWalletButton = () => {
-    return <ConnectButton />;
+    const handleConnect = () => {
+        reown.open();
+    };
+
+    return (
+        <button onClick={handleConnect} className="connect-wallet-button">
+            Connect Wallet
+        </button>
+    );
 };
 
 export default ConnectWalletButton;
