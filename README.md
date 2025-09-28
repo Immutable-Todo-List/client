@@ -4,20 +4,23 @@
 [![React](https://img.shields.io/badge/React-19.1.1-blue.svg)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1.2-646CFF.svg)](https://vitejs.dev/)
 [![Reown AppKit](https://img.shields.io/badge/Reown-AppKit-00D4FF.svg)](https://reown.com/)
+[![Wagmi](https://img.shields.io/badge/Wagmi-2.x-FF6B35.svg)](https://wagmi.sh/)
 [![Base](https://img.shields.io/badge/Base-Mainnet-0052FF.svg)](https://base.org/)
 
-A decentralized todo list application built on Base blockchain, ensuring your tasks are immutable, transparent, and truly owned by you. Now powered by Reown AppKit for seamless wallet connectivity.
+A decentralized todo list application built on Base blockchain, ensuring your tasks are immutable, transparent, and truly owned by you. Powered by Reown AppKit with Wagmi adapter for seamless Web3 wallet connectivity.
 
 ## 🌟 Features
 
 - **Decentralized Storage**: Tasks are stored on Base blockchain
+- **Web3-Only Authentication**: Pure wallet-based authentication (no email or social logins)
 - **Universal Wallet Support**: Connect with 300+ wallets via Reown AppKit
 - **Base Network**: Optimized for Base mainnet with low fees and fast transactions
 - **Immutable Records**: Once created, tasks cannot be deleted or modified (only completion status can be toggled)
 - **User Ownership**: Only you can view and manage your tasks
-- **Real-time Updates**: Automatic UI updates when blockchain events occur
+- **Real-time Updates**: Automatic UI updates when blockchain events occur using Wagmi hooks
 - **Modern UI**: Clean, responsive design with dark theme
 - **Cross-Platform**: Works on desktop and mobile devices
+- **Type-Safe**: Built with Wagmi for robust Web3 interactions
 
 ## 🚀 Quick Start
 
@@ -84,31 +87,46 @@ The application requires a deployed TodoList smart contract on Base mainnet. Upd
 }
 ```
 
-### Reown AppKit Configuration
+### Reown AppKit + Wagmi Configuration
 
-The app is configured to work with Base mainnet. To modify supported networks, edit `src/reown.js`:
+The app uses Reown AppKit with Wagmi adapter for robust Web3 interactions. Configuration is in `src/reown.js`:
 
 ```javascript
 import { createAppKit } from '@reown/appkit'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { base } from '@reown/appkit/networks'
 
+// Create Wagmi Adapter
+export const wagmiAdapter = new WagmiAdapter({
+  networks: [base],
+  projectId,
+  ssr: false
+})
+
+// Create AppKit instance
 export const reown = createAppKit({
-  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
+  adapters: [wagmiAdapter],
+  networks: [base],
   metadata: {
     name: 'Immutable Todo List',
     description: 'Decentralized Todo List on Base',
     url: 'https://your-domain.com',
     icons: ['https://your-domain.com/icon.png']
   },
-  networks: [
-    // Add or modify supported networks here
-  ]
+  projectId,
+  features: {
+    analytics: true,
+    email: false, // Web3-only authentication
+    socials: [], // No social media logins
+    emailShowWallets: false
+  }
 })
 ```
 
 ## 📱 Usage
 
 1. **Connect Wallet**: Click "Connect Wallet" to open Reown AppKit modal
-2. **Choose Wallet**: Select from 300+ supported wallets
+2. **Choose Wallet**: Select from 300+ supported Web3 wallets (wallet-only authentication)
 3. **Switch to Base**: Ensure you're connected to Base mainnet
 4. **Add Tasks**: Enter task description and click "Add Task"
 5. **Toggle Completion**: Click the checkbox to mark tasks as complete/incomplete
@@ -126,17 +144,18 @@ src/
 ├── contracts/           # Smart contract ABI and addresses
 │   ├── TodoList.json
 │   └── contract-address.json
-├── reown.js            # Reown AppKit configuration
-├── App.jsx             # Main application component
+├── reown.js            # Reown AppKit + Wagmi configuration
+├── App.jsx             # Main application component (uses Wagmi hooks)
 ├── App.css             # Application styles
-├── main.jsx            # Application entry point
+├── main.jsx            # Application entry point with providers
 └── index.css           # Global styles
 ```
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19.1.1, Vite 7.1.2
-- **Wallet Integration**: Reown AppKit
+- **Web3 Integration**: Reown AppKit + Wagmi Adapter
+- **State Management**: Wagmi hooks + React Query
 - **Blockchain**: Base (Ethereum L2)
 - **Styling**: CSS with CSS Variables
 - **Development**: ESLint, Hot Module Replacement
@@ -144,20 +163,34 @@ src/
 ## 🔗 Key Dependencies
 
 - `@reown/appkit` - Universal wallet connectivity
+- `@reown/appkit-adapter-wagmi` - Wagmi integration for AppKit
+- `wagmi` - React hooks for Ethereum
+- `viem` - TypeScript interface for Ethereum
+- `@tanstack/react-query` - Data fetching and caching
 - `react` - UI framework
 - `vite` - Build tool and development server
 
 ## 🌐 Supported Networks
 
 - **Base Mainnet** (Primary)
-- Easily configurable for other EVM-compatible networks
+- Easily configurable for other EVM-compatible networks via Wagmi
 
 ## 🔐 Security Features
 
+- **Web3-Only Authentication**: Pure wallet-based authentication, no email or social logins
 - **Client-side only**: No backend servers, fully decentralized
 - **Wallet verification**: All transactions require wallet signatures
 - **Input validation**: Prevents malicious input
 - **Error boundaries**: Graceful error handling
+- **Type safety**: Wagmi provides type-safe contract interactions
+
+## 🎯 Web3 Features
+
+- **Real-time Contract Events**: Uses `useWatchContractEvent` for live updates
+- **Optimistic Updates**: UI updates immediately with automatic rollback on errors
+- **Transaction Status**: Real-time pending/success/error states
+- **Account Management**: Automatic wallet connection state management
+- **Network Detection**: Automatic network switching prompts
 
 ## 📋 Available Scripts
 
@@ -184,14 +217,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Check existing issues before creating new ones
 - Provide detailed information for faster resolution
 
-## 🔄 Migration from RainbowKit/Wagmi
+## 🔄 Latest Updates
 
-This project has been migrated from RainbowKit/Wagmi to Reown AppKit for better wallet support and user experience. Key changes:
+### Reown AppKit + Wagmi Integration
 
-- **Universal Wallet Support**: 300+ wallets instead of limited selection
-- **Better Mobile Experience**: Improved mobile wallet connectivity
-- **Simplified Configuration**: Easier setup and maintenance
-- **Future-Proof**: Built on modern Web3 standards
+This project now uses Reown AppKit with Wagmi adapter for enhanced Web3 functionality:
+
+- **Enhanced Developer Experience**: Type-safe contract interactions with Wagmi hooks
+- **Better Performance**: Optimized data fetching with React Query integration
+- **Real-time Updates**: Live contract event listening with `useWatchContractEvent`
+- **Improved Error Handling**: Comprehensive error states and user feedback
+- **Web3-First Authentication**: Removed email and social media login options for pure Web3 experience
+
+### Key Wagmi Hooks Used
+
+- `useAccount` - Wallet connection state
+- `useReadContract` - Reading contract data
+- `useWriteContract` - Writing to contracts
+- `useWatchContractEvent` - Real-time event listening
 
 ---
 

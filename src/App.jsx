@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useAccount, useReadContract, useWriteContract, useWatchContractEvent } from 'wagmi';
 import './App.css';
 
 import todoListAbi from './contracts/TodoList.json';
@@ -12,112 +13,82 @@ import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 
 function App() {
-  const [address, setAddress] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [tasks, setTasks] = useState([]);
   const [error, setError] = useState(null);
-  const [isWritePending, setIsWritePending] = useState(false);
+  
+  // Use Wagmi hooks for wallet connection
+  const { address, isConnected } = useAccount();
+  
+  // Use Wagmi hooks for contract interactions
+  const { data: tasks = [], refetch: refetchTasks } = useReadContract({
+    address: contractAddress.TodoList,
+    abi: todoListAbi.abi,
+    functionName: 'getTasks',
+    args: [address],
+    enabled: !!address && isConnected,
+  });
 
-  // Listen for wallet connection changes
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        if (reown && reown.getAccount) {
-          const account = reown.getAccount();
-          if (account && account.address) {
-            setAddress(account.address);
-            setIsConnected(true);
-            await fetchTasks(account.address);
-          } else {
-            setAddress(null);
-            setIsConnected(false);
-            setTasks([]);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking wallet connection:', error);
-        setAddress(null);
-        setIsConnected(false);
-        setTasks([]);
-      }
-    };
-
-    checkConnection();
-    
-    // Set up event listeners for wallet state changes
-    if (reown && reown.subscribeAccount) {
-      const unsubscribe = reown.subscribeAccount((account) => {
-        if (account && account.address) {
-          setAddress(account.address);
-          setIsConnected(true);
-          fetchTasks(account.address);
-        } else {
-          setAddress(null);
-          setIsConnected(false);
-          setTasks([]);
-        }
-      });
-
-      return () => {
-        if (unsubscribe) unsubscribe();
-      };
+  const { 
+    writeContract, 
+    isPending: isWritePending 
+  } = useWriteContract({
+    onSuccess: () => {
+      setError(null);
+      refetchTasks();
+    },
+    onError: (error) => {
+      console.error('Contract write error:', error);
+      setError('Transaction failed. Please try again.');
     }
-  }, []);
+  });
 
-  // Fetch tasks from contract
-  const fetchTasks = async (userAddress) => {
-    try {
-      // This would need to be implemented with a proper Web3 provider
-      // For now, we'll use a placeholder
-      console.log('Fetching tasks for address:', userAddress);
-      // TODO: Implement contract reading with ethers or web3.js
-      setTasks([]);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      setTasks([]);
-    }
-  };
+  // Watch for contract events
+  useWatchContractEvent({
+    address: contractAddress.TodoList,
+    abi: todoListAbi.abi,
+    eventName: 'TaskCreated',
+    onLogs: () => {
+      refetchTasks();
+    },
+  });
+
+  useWatchContractEvent({
+    address: contractAddress.TodoList,
+    abi: todoListAbi.abi,
+    eventName: 'TaskCompletedToggled',
+    onLogs: () => {
+      refetchTasks();
+    },
+  });
 
   const handleToggleCompleted = async (taskId) => {
     try {
       setError(null);
-      setIsWritePending(true);
-      
-      // TODO: Implement contract writing with ethers or web3.js
-      console.log('Toggling task completion for task ID:', taskId);
-      
-      // Placeholder - would need proper Web3 provider integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setIsWritePending(false);
+      writeContract({
+        address: contractAddress.TodoList,
+        abi: todoListAbi.abi,
+        functionName: 'toggleCompleted',
+        args: [taskId],
+      });
     } catch (error) {
       console.error('Error toggling task:', error);
       setError('Failed to toggle task completion. Please try again.');
-      setIsWritePending(false);
     }
   };
 
   const handleAddTask = async (content) => {
     try {
       setError(null);
-      setIsWritePending(true);
-      
-      // TODO: Implement contract writing with ethers or web3.js
-      console.log('Creating new task with content:', content);
-      
-      // Placeholder - would need proper Web3 provider integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setIsWritePending(false);
+      writeContract({
+        address: contractAddress.TodoList,
+        abi: todoListAbi.abi,
+        functionName: 'createTask',
+        args: [content],
+      });
     } catch (error) {
       console.error('Error creating task:', error);
       setError('Failed to create task. Please try again.');
-      setIsWritePending(false);
     }
   };
-
-  // TODO: Implement contract event listening with ethers or web3.js
-  // This would replace the useWatchContractEvent hooks from Wagmi
 
 
 
